@@ -1,6 +1,7 @@
 import socket
 import os
 import tkinter as tk
+import threading
 
 # функция показа сообщения
 def show_message(msg):
@@ -45,18 +46,34 @@ def start_server():
     while True:
         client_socket, addr = server_socket.accept()
         data = client_socket.recv(1024).decode('utf-8')
-        if data == 's':
-            os.system("shutdown /s /t 0")
-            client_socket.send("ОТВЕТ: Идёт выключение".encode('utf-8'))
-        elif data == 'r':
-            os.system("shutdown /r /t 0")
-            client_socket.send("ОТВЕТ: Идёт перезагрузка".encode('utf-8'))
+        argument = data.split()[0]
+        try:
+            timer = int(data.split()[1]) * 60
+        except:
+            client_socket.send("<‼> Введите время в минутах".encode('utf-8'))
+
+        if argument == 's':
+            os.system(f"shutdown /s /t {str(timer)}")
+            if timer == 0:
+                client_socket.send("<Í> Идёт выключение".encode('utf-8'))
+            else:
+                client_socket.send(f"<Í> Выключение через {str(timer)}".encode('utf-8'))
+        elif argument == 'r':
+            os.system(f"shutdown /r /t {str(timer)}")
+            if timer == 0:
+                client_socket.send("<Í> Идёт перезагрузка".encode('utf-8'))
+            else:
+                client_socket.send(f"<Í> Перезагрузка через {str(timer)}".encode('utf-8'))
+        elif argument == 'a':
+            os.system("shutdown /a")
+            client_socket.send("<Í> Таймер выключения был отменён".encode('utf-8'))
         else:
             try:
-                client_socket.send("ОТВЕТ: Сообщение доставлено".encode('utf-8'))
-                show_message(data)
+                client_socket.send("<Í> Сообщение доставлено".encode('utf-8'))
+                threading.Thread(target=show_message, args=(argument, )).start()
             except:
                 pass
+
         client_socket.close()
 
 if __name__ == "__main__":

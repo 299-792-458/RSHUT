@@ -3,7 +3,7 @@ import os
 import threading
 import time
 
-version = ['v1.7', '29.02.24']
+version = ['v1.7.1', '07.03.24']
 
 def command_help():
     print(f'''
@@ -86,10 +86,10 @@ def start():
             print(ip_dict)
 
         # Функция разбития цикла на потоки для работы со 'все'
-        def command_for_all(argument):
+        def command_for_all(argument, timer='0'):
             threads = []
             for value in ip_dict.values():
-                thread = threading.Thread(target=client, args=(value, argument, ))
+                thread = threading.Thread(target=client, args=(value, argument, timer))
                 threads.append(thread)
 
             for thread in threads:
@@ -111,15 +111,15 @@ def start():
 
         # Выключить все
         if (input_data[0].lower() == 'all' or input_data[0].lower() == 'фдд' or input_data[0].lower() == 'все') and (input_data[1].lower() == 's' or input_data[1].lower() == 'ы'):
-            command_for_all(input_data[1])
             if len(input_data) == 2:
                 input_data.append('0')
+            command_for_all(input_data[1], input_data[2])
 
         # Перезагрузить все
         elif (input_data[0].lower() == 'all' or input_data[0].lower() == 'фдд' or input_data[0].lower() == 'все') and (input_data[1].lower() == 'r' or input_data[1].lower() == 'к'):
-            command_for_all(input_data[1])
             if len(input_data) == 2:
                 input_data.append('0')
+            command_for_all(input_data[1], input_data[2])
 
         # Сообщение всем
         elif (input_data[0].lower() == 'all' or input_data[0].lower() == 'фдд' or input_data[0].lower() == 'все') and (input_data[1].lower() == 'm' or input_data[1].lower() == 'ь'):

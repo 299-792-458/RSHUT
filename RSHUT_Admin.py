@@ -3,9 +3,9 @@ import os
 import threading
 import time
 import tkinter as tk
+from PIL import ImageTk
 
-version = ['v1.8', '11.03.24']
-
+version = ['v1.9', '18.03.24']
 def command_help():
     print(f'''
     <Í>
@@ -89,6 +89,13 @@ def main_window():
 
     window.title("RSHUT " + version[0])
 
+    img_shutdown = ImageTk.PhotoImage(file='icons/shutdown.ico')
+    img_reboot = ImageTk.PhotoImage(file='icons/reboot.ico')
+    img_message = ImageTk.PhotoImage(file='icons/message.ico')
+    img_timer = ImageTk.PhotoImage(file='icons/timer.ico')
+    img_timer_set = ImageTk.PhotoImage(file='icons/alarm_on.ico')
+    img_timer_unset = ImageTk.PhotoImage(file='icons/alarm_off.ico')
+
     color_1 = "#CFD8DC"
     color_2 = "#F5F5F5"
     color_3 = "#131418"
@@ -112,7 +119,26 @@ def main_window():
         window.mainloop()
 
     def timer_window(address):
-        pass
+        window = tk.Tk()
+        window.geometry("400x300")
+        window.title("ТАЙМЕР")
+
+        edit = tk.Entry(window, width=50)
+        edit.grid(row=1, column=1, pady=[30, 0], padx=50)
+
+        button_set = tk.Button(window, text="ЗАДАТЬ",
+                           command=lambda: [client(ip_dict[address], 's', timer=(edit.get())), window.destroy()],
+                           font=("Roboto", 12), width=15, height=3,
+                           relief=tk.FLAT, fg=color_3, bg=color_1)
+        button_set.grid(row=2, column=1, pady=[30, 30])
+
+        button_unset = tk.Button(window, text="ОТМЕНИТЬ",
+                           command=lambda: [client(ip_dict[address], 'a'), window.destroy()],
+                           font=("Roboto", 12), width=15, height=3,
+                           relief=tk.FLAT, fg=color_3, bg=color_1)
+        button_unset.grid(row=3, column=1, pady=[30, 0])
+
+        window.mainloop()
 
     for address in ip_dict:
         if i%2 == 0:
@@ -128,26 +154,33 @@ def main_window():
         label = tk.Label(frame, text=address, font=("Roboto", 20), fg=color_3, bg=color_a)
         label.place(relx=0.02)
 
-        button_shutdown = tk.Button(frame, text="ВЫКЛ.",
+        button_shutdown = tk.Button(frame, text="ВЫКЛ.", image=img_shutdown,
                                     command=lambda address=address: client(ip_dict[address], 's', '0'),
-                                    font=("Roboto", 12), width=8, height=1,
+                                    font=("Roboto", 12), width=100, height=100,
                                     relief=tk.FLAT, fg=color_3, bg=color_b)
 
-        button_shutdown.grid(row=i, column= 1, padx=[250, 5])
+        button_shutdown.grid(row=1, column= 1, padx=[250, 5])
 
-        button_restart = tk.Button(frame, text="ПЕРЕЗ.",
+        button_restart = tk.Button(frame, text="ПЕРЕЗ.", image=img_reboot,
                                    command=lambda address=address: client(ip_dict[address], 'r', '0'),
-                                   font=("Roboto", 12), width=8, height=1,
+                                   font=("Roboto", 12), width=100, height=100,
                                    relief=tk.FLAT, fg=color_3, bg=color_b)
 
-        button_restart.grid(row=i, column= 2, padx=[0, 5])
+        button_restart.grid(row=1, column= 2, padx=[0, 5])
 
-        button_msg = tk.Button(frame, text="СООБЩ.",
+        button_msg = tk.Button(frame, text="СООБЩ.", image=img_message,
                                    command=lambda address=address: message_window(address),
-                                   font=("Roboto", 12), width=8, height=1,
+                                   font=("Roboto", 12), width=100, height=100,
                                    relief=tk.FLAT, fg=color_3, bg=color_b)
 
-        button_msg.grid(row=i, column=3)
+        button_msg.grid(row=1, column=3, padx=[0, 5])
+
+        button_timer = tk.Button(frame, text="ТАЙМ.", image=img_timer,
+                                   command=lambda address=address: timer_window(address),
+                                   font=("Roboto", 12), width=100, height=100,
+                                   relief=tk.FLAT, fg=color_3, bg=color_b)
+
+        button_timer.grid(row=1, column=4)
 
         i += 1
 
@@ -156,11 +189,21 @@ def main_window():
 
     button_shutdown_all = tk.Button(frame_all, text="ВЫКЛ. ВСЕ", command=window.destroy, font=("Roboto", 12), width=8, height=1,
                                 relief=tk.FLAT, fg=color_3, bg=color_2)
-    button_shutdown_all.grid(row=1, column= 1, ipadx= 20, pady= [0, 20])
+    button_shutdown_all.grid(row=1, column= 1, ipadx= 20, padx=10, pady=10)
 
     button_restart_all = tk.Button(frame_all, text="ПЕРЕЗ. ВСЕ", command=window.destroy, font=("Roboto", 12), width=8, height=1,
                                relief=tk.FLAT, fg=color_3, bg=color_2)
     button_restart_all.grid(row=2, column= 1, ipadx= 20)
+
+    button_restart_all = tk.Button(frame_all, text="СООБЩ. ВСЕ", command=window.destroy, font=("Roboto", 12), width=8,
+                                   height=1,
+                                   relief=tk.FLAT, fg=color_3, bg=color_2)
+    button_restart_all.grid(row=1, column=2, ipadx=20)
+
+    button_restart_all = tk.Button(frame_all, text="ТАЙМ. ВСЕ", command=window.destroy, font=("Roboto", 12), width=8,
+                                   height=1,
+                                   relief=tk.FLAT, fg=color_3, bg=color_2)
+    button_restart_all.grid(row=2, column=2, ipadx=20)
 
 
     window.mainloop()
@@ -248,36 +291,23 @@ def start():
                 input_data.append('0')
             client(input_data[0], input_data[1], input_data[2])
 
-def client_short(ip, port, argument):
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    #socket.setdefaulttimeout(5) # установить таймаут подключения
-    client_socket.connect((str(ip), port))
-    client_socket.send(argument.encode('utf-8'))
-    data = client_socket.recv(1024)
-    print(f"{data.decode('utf-8')}")
-    client_socket.close()
-
-def client1(ip, argument, timer):
-    try:
-        argument = argument + ' ' + timer
-        client_short(ip, 9093, argument)
-    except:
-        print('\n<‼> Невозможно подключиться к ', ip, ':9093', sep='')
-
-def client2(ip, argument, timer):
-    try:
-        argument = argument + ' ' + timer
-        client_short(ip, 9094, argument)
-    except:
-        print('\n<‼> Невозможно подключиться к ', ip, ':9094', sep='')
-
-
 def client(ip, argument, timer='0'):
-    thread1 = threading.Thread(target=client1(ip, argument, timer))
-    thread1.start()
+    def client_port(ip, port, argument, timer):
+        try:
+            argument = argument + ' ' + timer
+            client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            client_socket.connect((str(ip), port))
+            client_socket.send(argument.encode('utf-8'))
+            data = client_socket.recv(1024)
+            print(f"{data.decode('utf-8')}")
+            client_socket.close()
+        except:
+            print('\n<‼> Ощибка подключения к ', ip, ':',port, sep='')
 
-    thread2 = threading.Thread(target=client2(ip, argument, timer))
-    thread2.start()
+    port = [9093, 9094]
+    threading.Thread(target=client_port, args=(ip, port[0], argument, timer)).start()
+    time.sleep(0.05)
+    threading.Thread(target=client_port, args=(ip, port[1], argument, timer)).start()
 
 if __name__ == "__main__":
     threading.Thread(target=start).start()
